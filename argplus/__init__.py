@@ -99,6 +99,6 @@ from argplus.main import build_parsers_tree
 
 
 def parse(parser):
-    args = parser.parse_arg()
+    args = parser.parse_args()
     if hasattr(args, 'func'):
         return args.func(args)

@@ -1,4 +1,4 @@
-# Micro-framework for building command-line interface
+# Micro-framework for building big and heavy command-line interfaces
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![codebeat badge](https://codebeat.co/badges/951460ba-e540-45b9-866f-044a9516f465)](https://codebeat.co/projects/github-com-thestics-argplus-master)
