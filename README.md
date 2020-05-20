@@ -1,5 +1,8 @@
 # Micro-framework for building command-line interface
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![codebeat badge](https://codebeat.co/badges/951460ba-e540-45b9-866f-044a9516f465)](https://codebeat.co/projects/github-com-thestics-argplus-master)
+
    As CLI build, using raw `argparse` is possible, for some programs it is 
 heavily discouraged. Size of CLI code for it, written with `argparse` is huge and
 hardly manageable.
@@ -24,23 +27,25 @@ and clear.
                be covered in `cli_configurator` (later)
            - Contains root parser with a fixed name (currently `cast`)
            - Supports special entries defined in a double-underscore case
-               '__cur__':
+               '\_\_cur__':
                    allows to add arguments for parser regardless of
                    whether any subparsers configured (e.g. we have next
                    structure:
-                   cast [-v] [-h] {sub_pars1 [-v] [-t], {... some nested parsers}
+                   ```cast [-v] [-h] {sub_pars1 [-v] [-t], {... some nested parsers}
                                    sub_pars2 [-t] [-k]}
+                   ```
                    One parser (sub_pars1) has arguments which are related to
                    him and has subparsers, which expose final interface
                    )
-               TODO: '__help_dict__':
+               TODO: '\_\_help_dict__':
                    Reference to dict with help messages for given subparsers
        Path to each sub parser is defined in dotwise manner (for parser
-           traceability: {
+           ```traceability: {
                ...
                'hdd_cdd': ['tb_config', 'output', 'site_filters'],
                ...
            }
+           ```
        hdd_cdd parser is defined by key traceability.hdd_cdd
        )
    - **Definition of CLI arguments configurator**:
