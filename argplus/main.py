@@ -48,17 +48,13 @@ class SubParserHolder:
                  hook: argparse._SubParsersAction,
                  name: str,
                  sub_node: tp.Union[list, dict] = None,
-                 help_dict=None):
-        if help_dict is None:
-            help_dict = {}
-
+                 help_msg=''):
         # we want avoid addition of subparsers for final parsers (leafs),
         # so we could use positionals safely (otherwise `argparse` will confuse)
         # positional arguments with subparsers. Thus we peek into nested node
         # to determine whether it is a nested parser.
         subparsers_needed = isinstance(sub_node, dict)
-        help_ = help_dict.get(name, '')
-        self.parser = hook.add_parser(name, help=help_)
+        self.parser = hook.add_parser(name, help=help_msg)
 
         if subparsers_needed:
             self.sub_parsers = self.parser.add_subparsers()
@@ -85,7 +81,8 @@ class ParserTreeBuilder:
         self._cli_configurator = cli_configurator(constants_dict['ARGS_HELP'])
         self._validate_tree()
         self._validate_constants()
-        self._traverser = Traverser(self._cli_configurator)
+        self._traverser = Traverser(self._cli_configurator,
+                                    self._constants['PARSERS_HELP'])
 
     def _validate_tree(self):
         pass
@@ -128,8 +125,11 @@ class ParserTreeBuilder:
 
 class Traverser:
 
-    def __init__(self, cli_configurator: CLIArgsConfigurator):
+    def __init__(self,
+                 cli_configurator: CLIArgsConfigurator,
+                 parsers_help: dict):
         self._cli_configurator = cli_configurator
+        self._parsers_help = parsers_help
 
     def traverse(self,
                  holder: SubParserHolder,
@@ -145,14 +145,15 @@ class Traverser:
                 if self._is_special_args(holder, sub_name, sub_node):
                     continue
 
+                # update path to node
+                new_path = self._handle_path(cur_path, sub_name)
+
+                parser_help_msg = self._get_parser_help_msg(new_path)
                 # create new sub parser and sub parsers action
                 # (one needed to bind possible arguments, defined with `__cur__`
                 # another for nested parsers)
                 new_holder = SubParserHolder(holder.sub_parsers, sub_name,
-                                             sub_node)
-
-                # update path to node
-                new_path = self._handle_path(cur_path, sub_name)
+                                             sub_node, parser_help_msg)
 
                 # make recursive call
                 self.traverse(new_holder, sub_node, new_path)
@@ -163,6 +164,22 @@ class Traverser:
             handler = handlers_manager.get_handler(cur_path)
             # bind
             self._cli_configurator.add_arguments(holder.parser, node, handler)
+
+    def _get_parser_help_msg(self, path):
+        # foo.bar.buzz -> dict['foo']['bar']['buzz']
+        series_of_keys = path.split('.')
+        cur = self._parsers_help.copy()
+        for key in series_of_keys:
+            try:
+                cur = cur.get(key)
+            except KeyError:
+                cur = None
+                break
+        if isinstance(cur, dict):
+            # for nested parsers help msg has to sit in
+            # `__cur__` key
+            cur = cur.get('__cur__', '')
+        return cur
 
     def _handle_path(self, cur_path: str, name: str) -> str:
         """If first iteration -- no leading dot needed"""
